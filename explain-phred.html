@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="description" content="Explain Phred quality scores">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<title>Explain Phred</title>
+
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css">
+<style>
+.container { max-width: 900px }
+#quality { font-family: Consolas, monospace }
+</style>
+
+<body class="container">
+<h1>Explain Phred</h1>
+<p>
+Paste or type your own <a href="http://en.wikipedia.org/wiki/FASTQ_format#Encoding">Phred+33
+encoded quality string</a> (used by Sanger and new Illumina sequencing) into the
+input below to decode it.  Learn more about
+<a href="http://en.wikipedia.org/wiki/Phred_quality_score">Phred quality scores
+on Wikipedia</a>.
+</p>
+<p><input type="text" id="quality" class="form-input input-lg" size="50" value="!&quot;#$%&amp;'()*+,-./0123456789:;<=>?@ABCDEFGHI"></p>
+<table id="explained" class="table table-condensed">
+  <thead>
+    <tr>
+      <th>Encoded</th>
+      <th>Phred Quality</th>
+      <th>Probability of incorrect base call</th>
+      <th>Base call accuracy</th>
+    </tr>
+  </thead>
+</table>
+
+<script>
+quality.addEventListener("keydown", function(){ setTimeout(decode, 0) }, false);
+quality.addEventListener("paste",   function(){ setTimeout(decode, 0) }, false);
+decode();
+quality.focus();
+
+function insertRow(table) {
+  var tr = table.insertRow();
+  for (var i = 1; i < arguments.length; i++) {
+    var td = tr.insertCell();
+    td.textContent = arguments[i];
+  }
+  return tr;
+}
+
+function decode() {
+  var rowIndex = explained.rows.length;
+  while (--rowIndex > 0) explained.deleteRow(rowIndex);
+  quality.value.split('').forEach(function(q){
+    var Q = q.charCodeAt(0) - 33,
+        p = Math.pow(10, -Q/10),
+        a = (1 - p) * 100;
+    insertRow(explained, q, Q, formatNum(p, 8), formatNum(a, 8) + '%');
+  });
+}
+
+function formatNum(n, precision) {
+  return n.toFixed(precision).replace(/\.?0+$/, '');
+}
+</script>
